@@ -10,6 +10,7 @@ Slackの会話ログとGitHub Issuesを分析し、チケット化が漏れて�
 - 🔄 **重複チェック**: 既存のGitHub Issueと照合し、重複を避ける
 - ✅ **インタラクティブ**: 提案ごとにY/Nで確認し、承認したものだけIssue化
 - 🎯 **自動チャンネル参加**: パブリックチャンネルには自動的に参加
+- 💾 **ログ保存**: LLMへの入出力を日付ごとにJSON形式とMarkdown形式で保存
 
 ## セットアップ
 
@@ -200,12 +201,54 @@ ai-pm/
 │   └── services/
 │       ├── slack.ts          # Slack API連携
 │       ├── github.ts         # GitHub API連携
-│       └── analyzer.ts       # OpenAI分析
+│       ├── analyzer.ts       # OpenAI分析
+│       └── logger.ts         # ログ保存
+├── output/                   # ログファイルの保存先（自動生成）
+│   ├── YYYY-MM-DD.json      # JSON形式のログ
+│   └── YYYY-MM-DD-readable.md # 人間が読みやすいMarkdown形式
 ├── .env                      # 環境変数（gitignore済み）
 ├── .env.example              # 環境変数テンプレート
 ├── package.json
 └── README.md
 ```
+
+## ログ機能
+
+### 自動保存されるログ
+
+ツールを実行するたびに、`output/`ディレクトリに以下のログが保存されます：
+
+1. **JSON形式ログ** (`YYYY-MM-DD.json`)
+   - LLMへの入力（Slackメッセージ、既存Issues）
+   - LLMからの出力（生のレスポンス、パース済み提案）
+   - タイムスタンプ
+   - 同じ日に複数回実行した場合は追記される
+
+2. **Markdown形式ログ** (`YYYY-MM-DD-readable.md`)
+   - 人間が読みやすい形式で整形
+   - 入力データと出力データを見やすく表示
+   - 提案ごとに構造化されて記録
+
+### ログの確認
+
+```bash
+# 今日のログを確認（JSON形式）
+cat output/2025-11-03.json
+
+# 今日のログを確認（Markdown形式）
+cat output/2025-11-03-readable.md
+
+# または、お好みのエディタで開く
+code output/2025-11-03-readable.md
+```
+
+### ログの活用例
+
+- LLMの分析精度を検証
+- 過去の提案を振り返る
+- プロンプトの改善に活用
+- チームメンバーとの共有
+- 監査ログとして保持
 
 ## トラブルシューティング
 

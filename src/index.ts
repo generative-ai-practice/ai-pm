@@ -3,6 +3,7 @@ import * as readline from 'readline';
 import { SlackService } from './services/slack.js';
 import { GitHubService } from './services/github.js';
 import { AnalyzerService } from './services/analyzer.js';
+import { LoggerService } from './services/logger.js';
 import { Config, DateRange, IssueProposal } from './types/index.js';
 
 // .envファイルから環境変数を読み込む
@@ -52,6 +53,7 @@ function loadConfig(): Config {
     dateRange: {
       days: parseInt(process.env.DATE_RANGE_DAYS || '2', 10),
     },
+    language: process.env.LANGUAGE || 'ja',
   };
 }
 
@@ -155,6 +157,7 @@ async function main() {
     console.log(`   (Last ${config.dateRange.days} days)\n`);
 
     // サービスを初期化
+    const loggerService = new LoggerService('output');
     const slackService = new SlackService(config.slack.token);
     const githubService = new GitHubService(
       config.github.token,
@@ -163,7 +166,9 @@ async function main() {
     );
     const analyzerService = new AnalyzerService(
       config.openai.apiKey,
-      config.openai.model
+      config.openai.model,
+      config.language,
+      loggerService
     );
 
     // Slackチャンネルを解決

@@ -38,4 +38,5 @@ export interface Config {
   dateRange: {
     days: number; // 何日分のデータを取得するか
   };
+  language: string; // 分析とチケットの言語
 }
