@@ -1,23 +1,31 @@
 {
   "name": "ai-pm",
   "version": "1.0.0",
+  "type": "module",
   "main": "index.js",
   "scripts": {
     "lint": "eslint src",
-    "run": "tsx src/run.ts",
+    "start": "tsx src/index.ts",
+    "dev": "tsx src/index.ts",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",
-  "license": "ISC",
-  "description": "",
+  "license": "MIT",
+  "description": "AI-powered project manager that analyzes Slack conversations and proposes GitHub issues",
   "devDependencies": {
+    "@types/node": "^24.10.0",
     "eslint": "^9.39.0",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-prettier": "^5.5.4",
     "eslint-plugin-sonarjs": "^3.0.5",
     "tsx": "^4.20.6",
+    "typescript": "^5.9.3",
     "typescript-eslint": "^8.46.2"
   },
   "dependencies": {
+    "@octokit/rest": "^22.0.1",
+    "@slack/web-api": "^7.12.0",
+    "dotenv": "^17.2.3",
+    "openai": "^6.7.0"
   }
 }
