@@ -1,6 +1,6 @@
-import OpenAI from 'openai';
-import { IssueProposal } from '../types/index.js';
-import { LoggerService } from './logger.js';
+import OpenAI from "openai";
+import { IssueProposal } from "../types/index.js";
+import { LoggerService } from "./logger.js";
 
 export class AnalyzerService {
   private openai: OpenAI;
@@ -8,7 +8,12 @@ export class AnalyzerService {
   private logger: LoggerService;
   private language: string;
 
-  constructor(apiKey: string, model: string = 'gpt-4o', language: string = 'ja', logger?: LoggerService) {
+  constructor(
+    apiKey: string,
+    model: string = "gpt-4o",
+    language: string = "ja",
+    logger?: LoggerService,
+  ) {
     this.openai = new OpenAI({ apiKey });
     this.model = model;
     this.language = language;
@@ -21,16 +26,13 @@ export class AnalyzerService {
    */
   async analyzeAndPropose(
     slackMessages: string,
-    existingIssues: string
+    existingIssues: string,
   ): Promise<IssueProposal[]> {
-    console.log('\nAnalyzing Slack conversations with OpenAI...');
+    console.log("\nAnalyzing Slack conversations with OpenAI...");
 
-    const languageInstruction = this.language === 'ja'
-      ? 'あなたはプロジェクトマネージャーのアシスタントです。日本語で回答してください。'
-      : 'You are a project manager assistant. Please respond in English.';
-
-    const taskDescription = this.language === 'ja'
-      ? `以下のSlackの会話ログと、既存のGitHub Issueを分析して、チケット化されていない重要な話題や課題を抽出してください。
+    const taskDescription =
+      this.language === "ja"
+        ? `以下のSlackの会話ログと、既存のGitHub Issueを分析して、チケット化されていない重要な話題や課題を抽出してください。
 
 ## Slack会話ログ
 ${slackMessages}
@@ -65,7 +67,7 @@ JSON形式で、以下のような配列を返してください：
 提案がない場合は空の配列 [] を返してください。
 
 JSONのみを返してください。他のテキストは含めないでください。`
-      : `Please analyze the following Slack conversation logs and existing GitHub Issues to identify important topics and issues that have not been ticketed yet.
+        : `Please analyze the following Slack conversation logs and existing GitHub Issues to identify important topics and issues that have not been ticketed yet.
 
 ## Slack Conversation Logs
 ${slackMessages}
@@ -103,30 +105,31 @@ Return only JSON. Do not include any other text.`;
 
     const prompt = taskDescription;
 
-    const systemMessage = this.language === 'ja'
-      ? 'あなたはプロジェクト管理を支援するAIアシスタントです。Slackの会話を分析し、GitHub Issueの提案を行います。必ずJSON形式で、全ての内容を日本語で回答してください。'
-      : 'You are an AI assistant supporting project management. You analyze Slack conversations and propose GitHub Issues. You must respond in JSON format with all content in English.';
+    const systemMessage =
+      this.language === "ja"
+        ? "あなたはプロジェクト管理を支援するAIアシスタントです。Slackの会話を分析し、GitHub Issueの提案を行います。必ずJSON形式で、全ての内容を日本語で回答してください。"
+        : "You are an AI assistant supporting project management. You analyze Slack conversations and propose GitHub Issues. You must respond in JSON format with all content in English.";
 
     try {
       const response = await this.openai.chat.completions.create({
         model: this.model,
         messages: [
           {
-            role: 'system',
+            role: "system",
             content: systemMessage,
           },
           {
-            role: 'user',
+            role: "user",
             content: prompt,
           },
         ],
         temperature: 0.7,
-        response_format: { type: 'json_object' },
+        response_format: { type: "json_object" },
       });
 
       const content = response.choices[0]?.message?.content;
       if (!content) {
-        console.error('No response from OpenAI');
+        console.error("No response from OpenAI");
         return [];
       }
 
@@ -152,18 +155,18 @@ Return only JSON. Do not include any other text.`;
         slackMessages,
         existingIssues,
         proposals,
-        content
+        content,
       );
       this.logger.saveReadableLog(
         slackMessages,
         existingIssues,
         proposals,
-        content
+        content,
       );
 
       return proposals as IssueProposal[];
     } catch (error) {
-      console.error('Error analyzing with OpenAI:', error);
+      console.error("Error analyzing with OpenAI:", error);
       throw error;
     }
   }
@@ -173,16 +176,16 @@ Return only JSON. Do not include any other text.`;
    */
   formatProposals(proposals: IssueProposal[]): string {
     if (proposals.length === 0) {
-      return '\n✓ No new issues to propose. All topics seem to be covered!';
+      return "\n✓ No new issues to propose. All topics seem to be covered!";
     }
 
     let output = `\n📋 Found ${proposals.length} issue proposal(s):\n`;
-    output += '='.repeat(80) + '\n';
+    output += "=".repeat(80) + "\n";
 
     for (let i = 0; i < proposals.length; i++) {
       const proposal = proposals[i];
       output += `\n[${i + 1}] ${proposal.title}\n`;
-      output += '-'.repeat(80) + '\n';
+      output += "-".repeat(80) + "\n";
       output += `\n${proposal.description}\n`;
       output += `\n💭 Reasoning: ${proposal.reasoning}\n`;
 
@@ -193,7 +196,7 @@ Return only JSON. Do not include any other text.`;
         }
       }
 
-      output += '\n' + '='.repeat(80) + '\n';
+      output += "\n" + "=".repeat(80) + "\n";
     }
 
     return output;

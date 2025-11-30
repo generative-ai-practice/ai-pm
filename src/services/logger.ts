@@ -1,5 +1,5 @@
-import * as fs from 'fs';
-import * as path from 'path';
+import * as fs from "fs";
+import * as path from "path";
 
 export interface LogEntry {
   timestamp: string;
@@ -8,6 +8,7 @@ export interface LogEntry {
     existingIssues: string;
   };
   response: {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     proposals: any[];
     rawResponse: string;
   };
@@ -16,7 +17,7 @@ export interface LogEntry {
 export class LoggerService {
   private outputDir: string;
 
-  constructor(outputDir: string = 'output') {
+  constructor(outputDir: string = "output") {
     this.outputDir = outputDir;
     this.ensureOutputDir();
   }
@@ -37,11 +38,11 @@ export class LoggerService {
   private getLogFileName(): string {
     const now = new Date();
     const year = now.getFullYear();
-    const month = String(now.getMonth() + 1).padStart(2, '0');
-    const day = String(now.getDate()).padStart(2, '0');
-    const hours = String(now.getHours()).padStart(2, '0');
-    const minutes = String(now.getMinutes()).padStart(2, '0');
-    const seconds = String(now.getSeconds()).padStart(2, '0');
+    const month = String(now.getMonth() + 1).padStart(2, "0");
+    const day = String(now.getDate()).padStart(2, "0");
+    const hours = String(now.getHours()).padStart(2, "0");
+    const minutes = String(now.getMinutes()).padStart(2, "0");
+    const seconds = String(now.getSeconds()).padStart(2, "0");
     return `${year}-${month}-${day}-${hours}${minutes}${seconds}.json`;
   }
 
@@ -60,11 +61,7 @@ export class LoggerService {
 
     try {
       // 新しいファイルとして保存（配列形式で1エントリのみ）
-      fs.writeFileSync(
-        logFilePath,
-        JSON.stringify([entry], null, 2),
-        'utf-8'
-      );
+      fs.writeFileSync(logFilePath, JSON.stringify([entry], null, 2), "utf-8");
       console.log(`\n💾 Log saved to: ${logFilePath}`);
     } catch (error) {
       console.error(`Error saving log: ${error}`);
@@ -77,8 +74,9 @@ export class LoggerService {
   logLLMInteraction(
     slackMessages: string,
     existingIssues: string,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     proposals: any[],
-    rawResponse: string
+    rawResponse: string,
   ): void {
     const entry: LogEntry = {
       timestamp: new Date().toISOString(),
@@ -101,12 +99,13 @@ export class LoggerService {
   saveReadableLog(
     slackMessages: string,
     existingIssues: string,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     proposals: any[],
-    rawResponse: string
+    rawResponse: string,
   ): void {
     const now = new Date();
     const timestamp = now.toISOString();
-    const dateStr = this.getLogFileName().replace('.json', '');
+    const dateStr = this.getLogFileName().replace(".json", "");
     const readableFileName = `${dateStr}.md`;
     const readableFilePath = path.join(this.outputDir, readableFileName);
 
@@ -130,7 +129,10 @@ export class LoggerService {
       content += `### Proposal ${index + 1}: ${proposal.title}\n\n`;
       content += `**Description**:\n${proposal.description}\n\n`;
       content += `**Reasoning**:\n${proposal.reasoning}\n\n`;
-      if (proposal.relatedSlackMessages && proposal.relatedSlackMessages.length > 0) {
+      if (
+        proposal.relatedSlackMessages &&
+        proposal.relatedSlackMessages.length > 0
+      ) {
         content += `**Related Slack Messages**:\n`;
         proposal.relatedSlackMessages.forEach((msg: string) => {
           content += `- ${msg}\n`;
@@ -142,7 +144,7 @@ export class LoggerService {
 
     try {
       // 新しいファイルとして保存
-      fs.writeFileSync(readableFilePath, content, 'utf-8');
+      fs.writeFileSync(readableFilePath, content, "utf-8");
       console.log(`📄 Readable log saved to: ${readableFilePath}`);
     } catch (error) {
       console.error(`Error saving readable log: ${error}`);

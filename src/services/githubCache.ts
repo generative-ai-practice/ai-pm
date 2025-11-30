@@ -1,6 +1,6 @@
-import * as fs from 'fs';
-import * as path from 'path';
-import { GitHubIssue } from './github.js';
+import * as fs from "fs";
+import * as path from "path";
+import { GitHubIssue } from "./github.js";
 
 export interface GitHubCache {
   owner: string;
@@ -12,7 +12,7 @@ export interface GitHubCache {
 export class GitHubCacheService {
   private cacheDir: string;
 
-  constructor(cacheDir: string = 'data') {
+  constructor(cacheDir: string = "data") {
     this.cacheDir = cacheDir;
     this.ensureCacheDir();
   }
@@ -44,7 +44,7 @@ export class GitHubCacheService {
     }
 
     try {
-      const data = fs.readFileSync(filePath, 'utf-8');
+      const data = fs.readFileSync(filePath, "utf-8");
       return JSON.parse(data);
     } catch (error) {
       console.error(`Error loading cache from ${filePath}:`, error);
@@ -59,7 +59,7 @@ export class GitHubCacheService {
     const filePath = this.getCacheFilePath(cache.owner, cache.repo);
 
     try {
-      fs.writeFileSync(filePath, JSON.stringify(cache, null, 2), 'utf-8');
+      fs.writeFileSync(filePath, JSON.stringify(cache, null, 2), "utf-8");
       console.log(`Cache saved to ${filePath}`);
     } catch (error) {
       console.error(`Error saving cache to ${filePath}:`, error);
@@ -73,7 +73,7 @@ export class GitHubCacheService {
    */
   mergeIssues(
     existingIssues: GitHubIssue[],
-    newIssues: GitHubIssue[]
+    newIssues: GitHubIssue[],
   ): GitHubIssue[] {
     const issueMap = new Map<number, GitHubIssue>();
 
