@@ -33,10 +33,10 @@ async function getChannelIdByName(
 
       if (result.channels) {
         const channel = result.channels.find(
-          (ch: any) => ch.name === cleanChannelName,
+          (ch) => (ch as { name?: string }).name === cleanChannelName,
         );
         if (channel) {
-          return channel.id as string;
+          return (channel as { id: string }).id;
         }
       }
 
@@ -63,16 +63,24 @@ async function joinChannel(
     });
     console.log(`Successfully joined channel: ${channelId}`);
     return true;
-  } catch (error: any) {
-    if (error.data?.error === "already_in_channel") {
+  } catch (error) {
+    if (
+      (error as { data?: { error?: string } }).data?.error ===
+      "already_in_channel"
+    ) {
       console.log(`Already in channel: ${channelId}`);
       return true;
     }
-    if (error.data?.error === "is_archived") {
+    if (
+      (error as { data?: { error?: string } }).data?.error === "is_archived"
+    ) {
       console.error("Cannot join: Channel is archived");
       return false;
     }
-    if (error.data?.error === "method_not_supported_for_channel_type") {
+    if (
+      (error as { data?: { error?: string } }).data?.error ===
+      "method_not_supported_for_channel_type"
+    ) {
       console.error(
         "Cannot join: This is a private channel. Please manually invite the bot.",
       );
@@ -124,8 +132,10 @@ async function getChannelMessagesForDate(
 
     console.log(`Total messages fetched: ${messages.length}`);
     return messages;
-  } catch (error: any) {
-    if (error.data?.error === "not_in_channel") {
+  } catch (error) {
+    if (
+      (error as { data?: { error?: string } }).data?.error === "not_in_channel"
+    ) {
       console.log("\nBot is not in the channel. Attempting to join...");
       const joined = await joinChannel(client, channelId);
 

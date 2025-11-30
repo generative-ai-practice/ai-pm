@@ -25,6 +25,7 @@ export class SlackService {
 
         if (result.channels) {
           const channel = result.channels.find(
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             (ch: any) => ch.name === cleanChannelName,
           );
           if (channel) {
@@ -52,6 +53,7 @@ export class SlackService {
       });
       console.log(`Successfully joined channel: ${channelId}`);
       return true;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       if (error.data?.error === "already_in_channel") {
         console.log(`Already in channel: ${channelId}`);
@@ -185,6 +187,7 @@ export class SlackService {
       console.log(`Total messages: ${messages.length + threadRepliesCount}`);
 
       return messages;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       if (error.data?.error === "not_in_channel") {
         console.log("\nBot is not in the channel. Attempting to join...");

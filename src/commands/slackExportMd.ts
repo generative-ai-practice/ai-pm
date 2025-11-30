@@ -1,7 +1,7 @@
 import dotenv from "dotenv";
 import * as fs from "fs";
 import * as path from "path";
-import { SlackCacheService, SlackCache } from "../services/slackCache.js";
+import { SlackCacheService } from "../services/slackCache.js";
 import { SlackMessage } from "../types/index.js";
 
 dotenv.config();
@@ -135,8 +135,8 @@ function filterMessagesByMonth(
  */
 function convertToMarkdown(
   messages: SlackMessage[],
-  channelName: string,
-  yearMonth: string,
+  _channelName: string,
+  _yearMonth: string,
 ): string {
   let output = "";
 

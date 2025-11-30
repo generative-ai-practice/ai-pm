@@ -30,11 +30,6 @@ export class AnalyzerService {
   ): Promise<IssueProposal[]> {
     console.log("\nAnalyzing Slack conversations with OpenAI...");
 
-    const languageInstruction =
-      this.language === "ja"
-        ? "あなたはプロジェクトマネージャーのアシスタントです。日本語で回答してください。"
-        : "You are a project manager assistant. Please respond in English.";
-
     const taskDescription =
       this.language === "ja"
         ? `以下のSlackの会話ログと、既存のGitHub Issueを分析して、チケット化されていない重要な話題や課題を抽出してください。

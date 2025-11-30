@@ -8,6 +8,7 @@ export interface LogEntry {
     existingIssues: string;
   };
   response: {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     proposals: any[];
     rawResponse: string;
   };
@@ -73,6 +74,7 @@ export class LoggerService {
   logLLMInteraction(
     slackMessages: string,
     existingIssues: string,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     proposals: any[],
     rawResponse: string,
   ): void {
@@ -97,6 +99,7 @@ export class LoggerService {
   saveReadableLog(
     slackMessages: string,
     existingIssues: string,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     proposals: any[],
     rawResponse: string,
   ): void {
