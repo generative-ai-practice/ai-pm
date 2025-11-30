@@ -23,6 +23,64 @@ export class GitHubService {
   }
 
   /**
+   * 全てのIssueを取得（PRも含む、state: all）
+   */
+  async getAllIssues(includePullRequests: boolean = true): Promise<GitHubIssue[]> {
+    try {
+      console.log('📋 Fetching all GitHub issues...');
+
+      const issues: GitHubIssue[] = [];
+      let page = 1;
+      const perPage = 100;
+
+      while (true) {
+        console.log(`   Fetching page ${page}...`);
+
+        const response = await this.octokit.issues.listForRepo({
+          owner: this.owner,
+          repo: this.repo,
+          state: 'all',
+          sort: 'created',
+          direction: 'desc',
+          per_page: perPage,
+          page: page,
+        });
+
+        if (response.data.length === 0) {
+          break;
+        }
+
+        for (const issue of response.data) {
+          // プルリクエストの扱い
+          if (issue.pull_request && !includePullRequests) {
+            continue;
+          }
+
+          issues.push({
+            number: issue.number,
+            title: issue.title,
+            body: issue.body,
+            created_at: issue.created_at,
+            html_url: issue.html_url,
+            state: issue.state,
+            labels: issue.labels.map((label) =>
+              typeof label === 'string' ? label : label.name || ''
+            ),
+          });
+        }
+
+        page++;
+      }
+
+      console.log(`   Fetched ${issues.length} issues total`);
+      return issues;
+    } catch (error) {
+      console.error('Error fetching GitHub issues:', error);
+      throw error;
+    }
+  }
+
+  /**
    * 日付範囲内に作成されたIssueを取得
    */
   async getIssuesInDateRange(dateRange: DateRange): Promise<GitHubIssue[]> {
