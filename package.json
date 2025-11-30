@@ -7,6 +7,9 @@
     "lint": "eslint src",
     "start": "tsx src/index.ts",
     "dev": "tsx src/index.ts",
+    "slack:init": "tsx src/commands/slackInit.ts",
+    "slack:update": "tsx src/commands/slackUpdate.ts",
+    "slack:resume": "tsx src/commands/slackResume.ts",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",

@@ -143,20 +143,41 @@ export class SlackService {
       console.log(`Fetched ${messages.length} main messages`);
 
       // スレッド返信を取得
+      const messagesWithThreads = messages.filter(
+        (msg) => msg.thread_ts && msg.reply_count && msg.reply_count > 0
+      );
+
+      if (messagesWithThreads.length > 0) {
+        console.log(`\n🧵 Fetching thread replies from ${messagesWithThreads.length} threads...`);
+        console.log(`   (This may take a while due to API rate limits)`);
+      }
+
       let threadRepliesCount = 0;
-      for (const message of messages) {
-        if (message.thread_ts && message.reply_count && message.reply_count > 0) {
-          const replies = await this.getThreadReplies(
-            channelId,
-            message.thread_ts,
-            dateRange
-          );
-          message.replies = replies;
-          threadRepliesCount += replies.length;
+      for (let i = 0; i < messagesWithThreads.length; i++) {
+        const message = messagesWithThreads[i];
+
+        // 進捗表示（10件ごと、または最後）
+        if ((i + 1) % 10 === 0 || i === messagesWithThreads.length - 1) {
+          console.log(`   Progress: ${i + 1}/${messagesWithThreads.length} threads processed`);
+        }
+
+        const replies = await this.getThreadReplies(
+          channelId,
+          message.thread_ts!,
+          dateRange
+        );
+        message.replies = replies;
+        threadRepliesCount += replies.length;
+
+        // Rate limit対策: 1.2秒待機（50リクエスト/分 = 1リクエスト/1.2秒）
+        if (i < messagesWithThreads.length - 1) {
+          await new Promise((resolve) => setTimeout(resolve, 1200));
         }
       }
 
-      console.log(`Fetched ${threadRepliesCount} thread replies`);
+      if (messagesWithThreads.length > 0) {
+        console.log(`\n✅ Fetched ${threadRepliesCount} thread replies`);
+      }
       console.log(`Total messages: ${messages.length + threadRepliesCount}`);
 
       return messages;
