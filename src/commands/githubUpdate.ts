@@ -1,6 +1,6 @@
-import dotenv from 'dotenv';
-import { GitHubService } from '../services/github.js';
-import { GitHubCacheService } from '../services/githubCache.js';
+import dotenv from "dotenv";
+import { GitHubService } from "../services/github.js";
+import { GitHubCacheService } from "../services/githubCache.js";
 
 dotenv.config();
 
@@ -8,7 +8,7 @@ dotenv.config();
  * 新しいIssueを取得してキャッシュに追加
  */
 async function main() {
-  console.log('🔄 GitHub Cache Update\n');
+  console.log("🔄 GitHub Cache Update\n");
 
   // 環境変数チェック
   const githubToken = process.env.GITHUB_TOKEN;
@@ -16,26 +16,30 @@ async function main() {
   const githubRepo = process.env.GITHUB_REPO;
 
   if (!githubToken) {
-    throw new Error('GITHUB_TOKEN is required');
+    throw new Error("GITHUB_TOKEN is required");
   }
   if (!githubOwner) {
-    throw new Error('GITHUB_OWNER is required');
+    throw new Error("GITHUB_OWNER is required");
   }
   if (!githubRepo) {
-    throw new Error('GITHUB_REPO is required');
+    throw new Error("GITHUB_REPO is required");
   }
 
   try {
     // サービス初期化
-    const githubService = new GitHubService(githubToken, githubOwner, githubRepo);
-    const cacheService = new GitHubCacheService('data');
+    const githubService = new GitHubService(
+      githubToken,
+      githubOwner,
+      githubRepo,
+    );
+    const cacheService = new GitHubCacheService("data");
 
     console.log(`📺 Repository: ${githubOwner}/${githubRepo}\n`);
 
     // 既存キャッシュを読み込み
     const existingCache = cacheService.loadCache(githubOwner, githubRepo);
     if (!existingCache) {
-      console.error('❌ Cache not found. Please run `yarn github:init` first.');
+      console.error("❌ Cache not found. Please run `yarn github:init` first.");
       process.exit(1);
     }
 
@@ -45,13 +49,13 @@ async function main() {
     console.log();
 
     // 全Issueを再取得（新しいIssueや更新されたIssueを含む）
-    console.log('💬 Fetching all issues to update...');
+    console.log("💬 Fetching all issues to update...");
     const allIssues = await githubService.getAllIssues(true);
 
     // メッセージをマージ
     const mergedIssues = cacheService.mergeIssues(
       existingCache.issues,
-      allIssues
+      allIssues,
     );
 
     // キャッシュを更新
@@ -67,10 +71,14 @@ async function main() {
     console.log(`\n✅ Successfully updated cache!`);
     console.log(`   Total issues: ${mergedIssues.length}`);
     console.log(`   Previous: ${existingCache.issues.length}`);
-    console.log(`   Added/Updated: ${mergedIssues.length - existingCache.issues.length}`);
-    console.log(`   Latest issue number: ${cacheService.getLatestIssueNumber(mergedIssues)}`);
+    console.log(
+      `   Added/Updated: ${mergedIssues.length - existingCache.issues.length}`,
+    );
+    console.log(
+      `   Latest issue number: ${cacheService.getLatestIssueNumber(mergedIssues)}`,
+    );
   } catch (error) {
-    console.error('\n❌ Error:', error);
+    console.error("\n❌ Error:", error);
     process.exit(1);
   }
 }

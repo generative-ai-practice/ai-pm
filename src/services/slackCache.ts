@@ -1,6 +1,6 @@
-import * as fs from 'fs';
-import * as path from 'path';
-import { SlackMessage } from '../types/index.js';
+import * as fs from "fs";
+import * as path from "path";
+import { SlackMessage } from "../types/index.js";
 
 export interface SlackCache {
   channelId: string;
@@ -12,7 +12,7 @@ export interface SlackCache {
 export class SlackCacheService {
   private cacheDir: string;
 
-  constructor(cacheDir: string = 'data') {
+  constructor(cacheDir: string = "data") {
     this.cacheDir = cacheDir;
     this.ensureCacheDir();
   }
@@ -44,7 +44,7 @@ export class SlackCacheService {
     }
 
     try {
-      const data = fs.readFileSync(filePath, 'utf-8');
+      const data = fs.readFileSync(filePath, "utf-8");
       return JSON.parse(data);
     } catch (error) {
       console.error(`Error loading cache from ${filePath}:`, error);
@@ -59,7 +59,7 @@ export class SlackCacheService {
     const filePath = this.getCacheFilePath(cache.channelId);
 
     try {
-      fs.writeFileSync(filePath, JSON.stringify(cache, null, 2), 'utf-8');
+      fs.writeFileSync(filePath, JSON.stringify(cache, null, 2), "utf-8");
       console.log(`Cache saved to ${filePath}`);
     } catch (error) {
       console.error(`Error saving cache to ${filePath}:`, error);
@@ -72,7 +72,7 @@ export class SlackCacheService {
    */
   mergeMessages(
     existingMessages: SlackMessage[],
-    newMessages: SlackMessage[]
+    newMessages: SlackMessage[],
   ): SlackMessage[] {
     const messageMap = new Map<string, SlackMessage>();
 
@@ -88,7 +88,7 @@ export class SlackCacheService {
 
     // タイムスタンプでソートして返す
     return Array.from(messageMap.values()).sort(
-      (a, b) => parseFloat(a.ts) - parseFloat(b.ts)
+      (a, b) => parseFloat(a.ts) - parseFloat(b.ts),
     );
   }
 
@@ -97,11 +97,11 @@ export class SlackCacheService {
    */
   getLatestTimestamp(messages: SlackMessage[]): string {
     if (messages.length === 0) {
-      return '0';
+      return "0";
     }
 
     // メッセージとスレッド返信を含めた全てのタイムスタンプから最新を取得
-    let latestTs = '0';
+    let latestTs = "0";
 
     for (const msg of messages) {
       if (parseFloat(msg.ts) > parseFloat(latestTs)) {

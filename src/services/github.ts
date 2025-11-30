@@ -1,5 +1,5 @@
-import { Octokit } from '@octokit/rest';
-import { DateRange } from '../types/index.js';
+import { Octokit } from "@octokit/rest";
+import { DateRange } from "../types/index.js";
 
 export interface GitHubIssue {
   number: number;
@@ -25,9 +25,11 @@ export class GitHubService {
   /**
    * 全てのIssueを取得（PRも含む、state: all）
    */
-  async getAllIssues(includePullRequests: boolean = true): Promise<GitHubIssue[]> {
+  async getAllIssues(
+    includePullRequests: boolean = true,
+  ): Promise<GitHubIssue[]> {
     try {
-      console.log('📋 Fetching all GitHub issues...');
+      console.log("📋 Fetching all GitHub issues...");
 
       const issues: GitHubIssue[] = [];
       let page = 1;
@@ -39,9 +41,9 @@ export class GitHubService {
         const response = await this.octokit.issues.listForRepo({
           owner: this.owner,
           repo: this.repo,
-          state: 'all',
-          sort: 'created',
-          direction: 'desc',
+          state: "all",
+          sort: "created",
+          direction: "desc",
           per_page: perPage,
           page: page,
         });
@@ -64,7 +66,7 @@ export class GitHubService {
             html_url: issue.html_url,
             state: issue.state,
             labels: issue.labels.map((label) =>
-              typeof label === 'string' ? label : label.name || ''
+              typeof label === "string" ? label : label.name || "",
             ),
           });
         }
@@ -75,7 +77,7 @@ export class GitHubService {
       console.log(`   Fetched ${issues.length} issues total`);
       return issues;
     } catch (error) {
-      console.error('Error fetching GitHub issues:', error);
+      console.error("Error fetching GitHub issues:", error);
       throw error;
     }
   }
@@ -86,7 +88,7 @@ export class GitHubService {
   async getIssuesInDateRange(dateRange: DateRange): Promise<GitHubIssue[]> {
     try {
       console.log(
-        `Fetching GitHub issues from ${dateRange.startDate.toISOString()} to ${dateRange.endDate.toISOString()}`
+        `Fetching GitHub issues from ${dateRange.startDate.toISOString()} to ${dateRange.endDate.toISOString()}`,
       );
 
       const issues: GitHubIssue[] = [];
@@ -97,9 +99,9 @@ export class GitHubService {
         const response = await this.octokit.issues.listForRepo({
           owner: this.owner,
           repo: this.repo,
-          state: 'all',
-          sort: 'created',
-          direction: 'desc',
+          state: "all",
+          sort: "created",
+          direction: "desc",
           per_page: perPage,
           page: page,
         });
@@ -123,7 +125,10 @@ export class GitHubService {
           }
 
           // 日付範囲内のものを追加
-          if (createdAt >= dateRange.startDate && createdAt <= dateRange.endDate) {
+          if (
+            createdAt >= dateRange.startDate &&
+            createdAt <= dateRange.endDate
+          ) {
             issues.push({
               number: issue.number,
               title: issue.title,
@@ -132,7 +137,7 @@ export class GitHubService {
               html_url: issue.html_url,
               state: issue.state,
               labels: issue.labels.map((label) =>
-                typeof label === 'string' ? label : label.name || ''
+                typeof label === "string" ? label : label.name || "",
               ),
             });
           }
@@ -144,7 +149,7 @@ export class GitHubService {
       console.log(`Fetched ${issues.length} issues in date range`);
       return issues;
     } catch (error) {
-      console.error('Error fetching GitHub issues:', error);
+      console.error("Error fetching GitHub issues:", error);
       throw error;
     }
   }
@@ -155,7 +160,7 @@ export class GitHubService {
   async createIssue(
     title: string,
     body: string,
-    labels?: string[]
+    labels?: string[],
   ): Promise<GitHubIssue> {
     try {
       const response = await this.octokit.issues.create({
@@ -166,7 +171,9 @@ export class GitHubService {
         labels,
       });
 
-      console.log(`Created issue #${response.data.number}: ${response.data.title}`);
+      console.log(
+        `Created issue #${response.data.number}: ${response.data.title}`,
+      );
 
       return {
         number: response.data.number,
@@ -176,11 +183,11 @@ export class GitHubService {
         html_url: response.data.html_url,
         state: response.data.state,
         labels: response.data.labels.map((label) =>
-          typeof label === 'string' ? label : label.name || ''
+          typeof label === "string" ? label : label.name || "",
         ),
       };
     } catch (error) {
-      console.error('Error creating GitHub issue:', error);
+      console.error("Error creating GitHub issue:", error);
       throw error;
     }
   }
@@ -190,22 +197,22 @@ export class GitHubService {
    */
   formatIssues(issues: GitHubIssue[]): string {
     if (issues.length === 0) {
-      return 'No issues found in the date range.';
+      return "No issues found in the date range.";
     }
 
-    let output = '';
+    let output = "";
     for (const issue of issues) {
       output += `\n#${issue.number}: ${issue.title}\n`;
       output += `Created: ${issue.created_at}\n`;
       output += `State: ${issue.state}\n`;
       if (issue.labels.length > 0) {
-        output += `Labels: ${issue.labels.join(', ')}\n`;
+        output += `Labels: ${issue.labels.join(", ")}\n`;
       }
       if (issue.body) {
         output += `Body:\n${issue.body}\n`;
       }
       output += `URL: ${issue.html_url}\n`;
-      output += '---\n';
+      output += "---\n";
     }
     return output;
   }

@@ -1,5 +1,5 @@
-import { WebClient } from '@slack/web-api';
-import { SlackMessage, DateRange } from '../types/index.js';
+import { WebClient } from "@slack/web-api";
+import { SlackMessage, DateRange } from "../types/index.js";
 
 export class SlackService {
   private client: WebClient;
@@ -13,19 +13,19 @@ export class SlackService {
    */
   async getChannelIdByName(channelName: string): Promise<string | null> {
     try {
-      const cleanChannelName = channelName.replace(/^#/, '');
+      const cleanChannelName = channelName.replace(/^#/, "");
 
       let cursor: string | undefined;
       do {
         const result = await this.client.conversations.list({
-          types: 'public_channel,private_channel',
+          types: "public_channel,private_channel",
           limit: 200,
           cursor: cursor,
         });
 
         if (result.channels) {
           const channel = result.channels.find(
-            (ch: any) => ch.name === cleanChannelName
+            (ch: any) => ch.name === cleanChannelName,
           );
           if (channel) {
             return channel.id as string;
@@ -37,7 +37,7 @@ export class SlackService {
 
       return null;
     } catch (error) {
-      console.error('Error fetching channels:', error);
+      console.error("Error fetching channels:", error);
       throw error;
     }
   }
@@ -53,21 +53,21 @@ export class SlackService {
       console.log(`Successfully joined channel: ${channelId}`);
       return true;
     } catch (error: any) {
-      if (error.data?.error === 'already_in_channel') {
+      if (error.data?.error === "already_in_channel") {
         console.log(`Already in channel: ${channelId}`);
         return true;
       }
-      if (error.data?.error === 'is_archived') {
-        console.error('Cannot join: Channel is archived');
+      if (error.data?.error === "is_archived") {
+        console.error("Cannot join: Channel is archived");
         return false;
       }
-      if (error.data?.error === 'method_not_supported_for_channel_type') {
+      if (error.data?.error === "method_not_supported_for_channel_type") {
         console.error(
-          'Cannot join: This is a private channel. Please manually invite the bot.'
+          "Cannot join: This is a private channel. Please manually invite the bot.",
         );
         return false;
       }
-      console.error('Error joining channel:', error);
+      console.error("Error joining channel:", error);
       return false;
     }
   }
@@ -78,7 +78,7 @@ export class SlackService {
   async getThreadReplies(
     channelId: string,
     threadTs: string,
-    dateRange: DateRange
+    dateRange: DateRange,
   ): Promise<SlackMessage[]> {
     try {
       const result = await this.client.conversations.replies({
@@ -105,17 +105,17 @@ export class SlackService {
    */
   async getMessagesInDateRange(
     channelId: string,
-    dateRange: DateRange
+    dateRange: DateRange,
   ): Promise<SlackMessage[]> {
     const oldestTimestamp = Math.floor(
-      dateRange.startDate.getTime() / 1000
+      dateRange.startDate.getTime() / 1000,
     ).toString();
     const latestTimestamp = Math.floor(
-      dateRange.endDate.getTime() / 1000
+      dateRange.endDate.getTime() / 1000,
     ).toString();
 
     console.log(
-      `Fetching messages from ${dateRange.startDate.toISOString()} to ${dateRange.endDate.toISOString()}`
+      `Fetching messages from ${dateRange.startDate.toISOString()} to ${dateRange.endDate.toISOString()}`,
     );
     console.log(`Timestamp range: ${oldestTimestamp} to ${latestTimestamp}`);
 
@@ -144,11 +144,13 @@ export class SlackService {
 
       // スレッド返信を取得
       const messagesWithThreads = messages.filter(
-        (msg) => msg.thread_ts && msg.reply_count && msg.reply_count > 0
+        (msg) => msg.thread_ts && msg.reply_count && msg.reply_count > 0,
       );
 
       if (messagesWithThreads.length > 0) {
-        console.log(`\n🧵 Fetching thread replies from ${messagesWithThreads.length} threads...`);
+        console.log(
+          `\n🧵 Fetching thread replies from ${messagesWithThreads.length} threads...`,
+        );
         console.log(`   (This may take a while due to API rate limits)`);
       }
 
@@ -158,13 +160,15 @@ export class SlackService {
 
         // 進捗表示（10件ごと、または最後）
         if ((i + 1) % 10 === 0 || i === messagesWithThreads.length - 1) {
-          console.log(`   Progress: ${i + 1}/${messagesWithThreads.length} threads processed`);
+          console.log(
+            `   Progress: ${i + 1}/${messagesWithThreads.length} threads processed`,
+          );
         }
 
         const replies = await this.getThreadReplies(
           channelId,
           message.thread_ts!,
-          dateRange
+          dateRange,
         );
         message.replies = replies;
         threadRepliesCount += replies.length;
@@ -182,23 +186,23 @@ export class SlackService {
 
       return messages;
     } catch (error: any) {
-      if (error.data?.error === 'not_in_channel') {
-        console.log('\nBot is not in the channel. Attempting to join...');
+      if (error.data?.error === "not_in_channel") {
+        console.log("\nBot is not in the channel. Attempting to join...");
         const joined = await this.joinChannel(channelId);
 
         if (!joined) {
-          console.error('\nFailed to join channel automatically.');
-          console.error('For private channels, manually invite the bot:');
-          console.error('  1. Open the channel in Slack');
-          console.error('  2. Type: /invite @your-bot-name');
+          console.error("\nFailed to join channel automatically.");
+          console.error("For private channels, manually invite the bot:");
+          console.error("  1. Open the channel in Slack");
+          console.error("  2. Type: /invite @your-bot-name");
           throw error;
         }
 
-        console.log('Retrying to fetch messages...\n');
+        console.log("Retrying to fetch messages...\n");
         return this.getMessagesInDateRange(channelId, dateRange);
       }
 
-      console.error('Error fetching messages:', error);
+      console.error("Error fetching messages:", error);
       throw error;
     }
   }
@@ -207,21 +211,21 @@ export class SlackService {
    * メッセージをフォーマットして文字列に変換
    */
   formatMessages(messages: SlackMessage[]): string {
-    let output = '';
+    let output = "";
 
     // タイムスタンプでソート
     messages.sort((a, b) => parseFloat(a.ts) - parseFloat(b.ts));
 
     for (const msg of messages) {
       const date = new Date(parseFloat(msg.ts) * 1000);
-      output += `\n[${date.toISOString()}] ${msg.user || 'unknown'}\n`;
+      output += `\n[${date.toISOString()}] ${msg.user || "unknown"}\n`;
       output += `${msg.text}\n`;
 
       // スレッド返信があれば追加
       if (msg.replies && msg.replies.length > 0) {
         for (const reply of msg.replies) {
           const replyDate = new Date(parseFloat(reply.ts) * 1000);
-          output += `  ↳ [${replyDate.toISOString()}] ${reply.user || 'unknown'}\n`;
+          output += `  ↳ [${replyDate.toISOString()}] ${reply.user || "unknown"}\n`;
           output += `    ${reply.text}\n`;
         }
       }
