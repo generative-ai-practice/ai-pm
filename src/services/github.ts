@@ -83,6 +83,68 @@ export class GitHubService {
   }
 
   /**
+   * 指定日時以降に更新されたIssueを取得（差分取得用）
+   */
+  async getIssuesSince(
+    since: string,
+    includePullRequests: boolean = true,
+  ): Promise<GitHubIssue[]> {
+    try {
+      console.log(`📋 Fetching GitHub issues updated since ${since}...`);
+
+      const issues: GitHubIssue[] = [];
+      let page = 1;
+      const perPage = 100;
+
+      while (true) {
+        console.log(`   Fetching page ${page}...`);
+
+        const response = await this.octokit.issues.listForRepo({
+          owner: this.owner,
+          repo: this.repo,
+          state: "all",
+          since: since,
+          sort: "updated",
+          direction: "desc",
+          per_page: perPage,
+          page: page,
+        });
+
+        if (response.data.length === 0) {
+          break;
+        }
+
+        for (const issue of response.data) {
+          // プルリクエストの扱い
+          if (issue.pull_request && !includePullRequests) {
+            continue;
+          }
+
+          issues.push({
+            number: issue.number,
+            title: issue.title,
+            body: issue.body,
+            created_at: issue.created_at,
+            html_url: issue.html_url,
+            state: issue.state,
+            labels: issue.labels.map((label) =>
+              typeof label === "string" ? label : label.name || "",
+            ),
+          });
+        }
+
+        page++;
+      }
+
+      console.log(`   Fetched ${issues.length} updated issues`);
+      return issues;
+    } catch (error) {
+      console.error("Error fetching GitHub issues:", error);
+      throw error;
+    }
+  }
+
+  /**
    * 日付範囲内に作成されたIssueを取得
    */
   async getIssuesInDateRange(dateRange: DateRange): Promise<GitHubIssue[]> {
