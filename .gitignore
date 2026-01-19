@@ -7,3 +7,4 @@ lib/
 output/
 data/
 input/
+config/github-repos.json

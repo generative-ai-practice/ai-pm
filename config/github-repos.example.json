@@ -1,0 +1,6 @@
+{
+  "repositories": [
+    { "owner": "your-org", "repo": "frontend" },
+    { "owner": "your-org", "repo": "backend" }
+  ]
+}

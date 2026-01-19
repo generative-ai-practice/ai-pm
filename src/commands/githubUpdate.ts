@@ -1,8 +1,92 @@
 import dotenv from "dotenv";
+import * as fs from "fs";
+import * as path from "path";
 import { GitHubService } from "../services/github.js";
 import { GitHubCacheService } from "../services/githubCache.js";
 
 dotenv.config();
+
+interface RepoConfig {
+  owner: string;
+  repo: string;
+}
+
+interface GitHubReposConfig {
+  repositories: RepoConfig[];
+}
+
+/**
+ * 設定ファイルからリポジトリ一覧を読み込む
+ */
+function loadReposConfig(): RepoConfig[] | null {
+  const configPath = path.join(process.cwd(), "config", "github-repos.json");
+
+  if (!fs.existsSync(configPath)) {
+    return null;
+  }
+
+  try {
+    const data = fs.readFileSync(configPath, "utf-8");
+    const config: GitHubReposConfig = JSON.parse(data);
+    return config.repositories;
+  } catch (error) {
+    console.error(`Error loading config from ${configPath}:`, error);
+    return null;
+  }
+}
+
+/**
+ * 単一リポジトリを更新
+ */
+async function updateRepo(
+  githubToken: string,
+  owner: string,
+  repo: string,
+  cacheService: GitHubCacheService,
+): Promise<boolean> {
+  console.log(`\n📺 Repository: ${owner}/${repo}`);
+
+  // 既存キャッシュを読み込み
+  const existingCache = cacheService.loadCache(owner, repo);
+  if (!existingCache) {
+    console.log("   ❌ Cache not found. Run `yarn github:init` first.");
+    return false;
+  }
+
+  console.log(`   📂 Last updated: ${existingCache.lastUpdated}`);
+  console.log(`   Existing issues: ${existingCache.issues.length}`);
+
+  const githubService = new GitHubService(githubToken, owner, repo);
+
+  // 前回更新以降のIssueを差分取得
+  const updatedIssues = await githubService.getIssuesSince(
+    existingCache.lastUpdated,
+    true,
+  );
+
+  // Issueをマージ
+  const mergedIssues = cacheService.mergeIssues(
+    existingCache.issues,
+    updatedIssues,
+  );
+
+  // キャッシュを更新
+  const updatedCache = {
+    owner: owner,
+    repo: repo,
+    lastUpdated: new Date().toISOString(),
+    issues: mergedIssues,
+  };
+
+  cacheService.saveCache(updatedCache);
+
+  const addedCount = mergedIssues.length - existingCache.issues.length;
+  console.log(
+    `   ✅ Updated! Added/Updated: ${addedCount >= 0 ? addedCount : 0}`,
+  );
+  console.log(`   Total issues: ${mergedIssues.length}`);
+  return true;
+}
 
 /**
  * 新しいIssueを取得してキャッシュに追加
@@ -12,77 +96,66 @@ async function main() {
 
   // 環境変数チェック
   const githubToken = process.env.GITHUB_TOKEN;
-  const githubOwner = process.env.GITHUB_OWNER;
-  const githubRepo = process.env.GITHUB_REPO;
-
   if (!githubToken) {
     throw new Error("GITHUB_TOKEN is required");
   }
-  if (!githubOwner) {
-    throw new Error("GITHUB_OWNER is required");
-  }
-  if (!githubRepo) {
-    throw new Error("GITHUB_REPO is required");
-  }
 
-  try {
-    // サービス初期化
-    const githubService = new GitHubService(
-      githubToken,
-      githubOwner,
-      githubRepo,
+  const cacheService = new GitHubCacheService("data");
+
+  // 設定ファイルを確認
+  const reposConfig = loadReposConfig();
+
+  if (reposConfig && reposConfig.length > 0) {
+    // 設定ファイルから複数リポジトリを処理
+    console.log(
+      `📋 Found ${reposConfig.length} repositories in config/github-repos.json`,
     );
-    const cacheService = new GitHubCacheService("data");
 
-    console.log(`📺 Repository: ${githubOwner}/${githubRepo}\n`);
+    let successCount = 0;
+    let skipCount = 0;
 
-    // 既存キャッシュを読み込み
-    const existingCache = cacheService.loadCache(githubOwner, githubRepo);
-    if (!existingCache) {
-      console.error("❌ Cache not found. Please run `yarn github:init` first.");
-      process.exit(1);
+    for (const repoConfig of reposConfig) {
+      try {
+        const updated = await updateRepo(
+          githubToken,
+          repoConfig.owner,
+          repoConfig.repo,
+          cacheService,
+        );
+        if (updated) {
+          successCount++;
+        } else {
+          skipCount++;
+        }
+      } catch (error) {
+        console.error(`   ❌ Error: ${error}`);
+      }
     }
 
-    console.log(`📂 Loaded existing cache:`);
-    console.log(`   Last updated: ${existingCache.lastUpdated}`);
-    console.log(`   Existing issues: ${existingCache.issues.length}`);
-    console.log();
+    console.log(`\n✨ Done! Updated: ${successCount}, Skipped: ${skipCount}`);
+  } else {
+    // 環境変数から単一リポジトリを処理（後方互換性）
+    const githubOwner = process.env.GITHUB_OWNER;
+    const githubRepo = process.env.GITHUB_REPO;
 
-    // 前回更新以降のIssueを差分取得
-    console.log("💬 Fetching issues updated since last fetch...");
-    const updatedIssues = await githubService.getIssuesSince(
-      existingCache.lastUpdated,
-      true,
-    );
+    if (!githubOwner) {
+      throw new Error(
+        "GITHUB_OWNER is required (or create config/github-repos.json)",
+      );
+    }
+    if (!githubRepo) {
+      throw new Error(
+        "GITHUB_REPO is required (or create config/github-repos.json)",
+      );
+    }
 
-    // Issueをマージ
-    const mergedIssues = cacheService.mergeIssues(
-      existingCache.issues,
-      updatedIssues,
-    );
-
-    // キャッシュを更新
-    const updatedCache = {
-      owner: githubOwner,
-      repo: githubRepo,
-      lastUpdated: new Date().toISOString(),
-      issues: mergedIssues,
-    };
-
-    cacheService.saveCache(updatedCache);
-
-    console.log(`\n✅ Successfully updated cache!`);
-    console.log(`   Total issues: ${mergedIssues.length}`);
-    console.log(`   Previous: ${existingCache.issues.length}`);
-    console.log(
-      `   Added/Updated: ${mergedIssues.length - existingCache.issues.length}`,
-    );
-    console.log(
-      `   Latest issue number: ${cacheService.getLatestIssueNumber(mergedIssues)}`,
-    );
-  } catch (error) {
-    console.error("\n❌ Error:", error);
-    process.exit(1);
+    try {
+      await updateRepo(githubToken, githubOwner, githubRepo, cacheService);
+      console.log("\n✨ Done!");
+    } catch (error) {
+      console.error("\n❌ Error:", error);
+      process.exit(1);
+    }
   }
 }
 
