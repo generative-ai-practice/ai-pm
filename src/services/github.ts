@@ -1,6 +1,13 @@
 import { Octokit } from "@octokit/rest";
 import { DateRange } from "../types/index.js";
 
+export interface GitHubComment {
+  id: number;
+  user: string;
+  created_at: string;
+  body: string;
+}
+
 export interface GitHubIssue {
   number: number;
   title: string;
@@ -9,6 +16,7 @@ export interface GitHubIssue {
   html_url: string;
   state: string;
   labels: string[];
+  comments?: GitHubComment[];
 }
 
 export class GitHubService {
@@ -27,6 +35,7 @@ export class GitHubService {
    */
   async getAllIssues(
     includePullRequests: boolean = true,
+    includeComments: boolean = true,
   ): Promise<GitHubIssue[]> {
     try {
       console.log("📋 Fetching all GitHub issues...");
@@ -75,6 +84,141 @@ export class GitHubService {
       }
 
       console.log(`   Fetched ${issues.length} issues total`);
+
+      // コメントを取得
+      if (includeComments) {
+        console.log("💬 Fetching comments for each issue...");
+        for (let i = 0; i < issues.length; i++) {
+          const issue = issues[i];
+          if ((i + 1) % 50 === 0) {
+            console.log(`   Processing ${i + 1}/${issues.length}...`);
+          }
+          issue.comments = await this.getCommentsForIssue(issue.number);
+        }
+        console.log("   Comments fetched for all issues");
+      }
+
+      return issues;
+    } catch (error) {
+      console.error("Error fetching GitHub issues:", error);
+      throw error;
+    }
+  }
+
+  /**
+   * Issue のコメントを取得
+   */
+  async getCommentsForIssue(issueNumber: number): Promise<GitHubComment[]> {
+    try {
+      const comments: GitHubComment[] = [];
+      let page = 1;
+      const perPage = 100;
+
+      while (true) {
+        const response = await this.octokit.issues.listComments({
+          owner: this.owner,
+          repo: this.repo,
+          issue_number: issueNumber,
+          per_page: perPage,
+          page: page,
+        });
+
+        if (response.data.length === 0) {
+          break;
+        }
+
+        for (const comment of response.data) {
+          comments.push({
+            id: comment.id,
+            user: comment.user?.login || "unknown",
+            created_at: comment.created_at,
+            body: comment.body || "",
+          });
+        }
+
+        page++;
+      }
+
+      return comments;
+    } catch (error) {
+      console.error(
+        `Error fetching comments for issue #${issueNumber}:`,
+        error,
+      );
+      return [];
+    }
+  }
+
+  /**
+   * 指定日時以降に更新されたIssueを取得（差分取得用）
+   */
+  async getIssuesSince(
+    since: string,
+    includePullRequests: boolean = true,
+    includeComments: boolean = true,
+  ): Promise<GitHubIssue[]> {
+    try {
+      console.log(`📋 Fetching GitHub issues updated since ${since}...`);
+
+      const issues: GitHubIssue[] = [];
+      let page = 1;
+      const perPage = 100;
+
+      while (true) {
+        console.log(`   Fetching page ${page}...`);
+
+        const response = await this.octokit.issues.listForRepo({
+          owner: this.owner,
+          repo: this.repo,
+          state: "all",
+          since: since,
+          sort: "updated",
+          direction: "desc",
+          per_page: perPage,
+          page: page,
+        });
+
+        if (response.data.length === 0) {
+          break;
+        }
+
+        for (const issue of response.data) {
+          // プルリクエストの扱い
+          if (issue.pull_request && !includePullRequests) {
+            continue;
+          }
+
+          issues.push({
+            number: issue.number,
+            title: issue.title,
+            body: issue.body,
+            created_at: issue.created_at,
+            html_url: issue.html_url,
+            state: issue.state,
+            labels: issue.labels.map((label) =>
+              typeof label === "string" ? label : label.name || "",
+            ),
+          });
+        }
+
+        page++;
+      }
+
+      console.log(`   Fetched ${issues.length} updated issues`);
+
+      // コメントを取得
+      if (includeComments && issues.length > 0) {
+        console.log("💬 Fetching comments for updated issues...");
+        for (let i = 0; i < issues.length; i++) {
+          const issue = issues[i];
+          if ((i + 1) % 50 === 0) {
+            console.log(`   Processing ${i + 1}/${issues.length}...`);
+          }
+          issue.comments = await this.getCommentsForIssue(issue.number);
+        }
+        console.log("   Comments fetched for all updated issues");
+      }
+
       return issues;
     } catch (error) {
       console.error("Error fetching GitHub issues:", error);

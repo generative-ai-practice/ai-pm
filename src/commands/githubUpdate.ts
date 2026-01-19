@@ -48,14 +48,17 @@ async function main() {
     console.log(`   Existing issues: ${existingCache.issues.length}`);
     console.log();
 
-    // 全Issueを再取得（新しいIssueや更新されたIssueを含む）
-    console.log("💬 Fetching all issues to update...");
-    const allIssues = await githubService.getAllIssues(true);
+    // 前回更新以降のIssueを差分取得
+    console.log("💬 Fetching issues updated since last fetch...");
+    const updatedIssues = await githubService.getIssuesSince(
+      existingCache.lastUpdated,
+      true,
+    );
 
-    // メッセージをマージ
+    // Issueをマージ
     const mergedIssues = cacheService.mergeIssues(
       existingCache.issues,
-      allIssues,
+      updatedIssues,
     );
 
     // キャッシュを更新
