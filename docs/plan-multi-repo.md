@@ -6,7 +6,7 @@
 ## 実装方針
 
 ### 1. 設定ファイルの作成
-`config/github-repos.json` を新規作成：
+`config/github-repos.example.json` をコピーして `config/github-repos.json` を作成：
 ```json
 {
   "repositories": [
@@ -31,7 +31,7 @@
 - 設定ファイルがあれば優先、なければ環境変数を使用
 
 ## 変更ファイル一覧
-- `config/github-repos.json` (新規)
+- `config/github-repos.json` (ユーザー作成、gitignore 対象)
 - `config/github-repos.example.json` (新規) - サンプル設定
 - `src/commands/githubInit.ts`
 - `src/commands/githubUpdate.ts`

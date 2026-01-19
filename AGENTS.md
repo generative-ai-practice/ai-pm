@@ -57,7 +57,8 @@ Key interfaces: `SlackMessage`, `IssueProposal`, `Config`, `DateRange`
 
 ## Environment Variables
 
-Required: `SLACK_BOT_TOKEN`, `GITHUB_TOKEN`, `GITHUB_OWNER`, `GITHUB_REPO`, `OPENAI_API_KEY`
+Required: `SLACK_BOT_TOKEN`, `GITHUB_TOKEN`, `OPENAI_API_KEY`
+GitHub target: `config/github-repos.json` or `GITHUB_OWNER` + `GITHUB_REPO`
 Plus either `SLACK_CHANNEL_NAME` or `SLACK_CHANNEL_ID`
 
 Optional: `OPENAI_MODEL` (default: gpt-4o), `DATE_RANGE_DAYS` (default: 2), `LANGUAGE` (default: ja)
