@@ -6,7 +6,7 @@ import type { GitHubIssue } from "../src/services/github.js";
 describe("GitHubCacheService", () => {
   describe("mergeIssues", () => {
     it("should merge new issues with existing ones", () => {
-      const cacheService = new GitHubCacheService("test-data");
+      const cacheService = new GitHubCacheService("test-data", { skipDirCreation: true });
 
       const existing: GitHubIssue[] = [
         {
@@ -38,7 +38,7 @@ describe("GitHubCacheService", () => {
     });
 
     it("should overwrite duplicate issues by number", () => {
-      const cacheService = new GitHubCacheService("test-data");
+      const cacheService = new GitHubCacheService("test-data", { skipDirCreation: true });
 
       const existing: GitHubIssue[] = [
         {
@@ -72,7 +72,7 @@ describe("GitHubCacheService", () => {
     });
 
     it("should sort issues by number descending", () => {
-      const cacheService = new GitHubCacheService("test-data");
+      const cacheService = new GitHubCacheService("test-data", { skipDirCreation: true });
 
       const existing: GitHubIssue[] = [
         {
@@ -117,7 +117,7 @@ describe("GitHubCacheService", () => {
 
   describe("getLatestIssueNumber", () => {
     it("should return the highest issue number", () => {
-      const cacheService = new GitHubCacheService("test-data");
+      const cacheService = new GitHubCacheService("test-data", { skipDirCreation: true });
 
       const issues: GitHubIssue[] = [
         {
@@ -155,7 +155,7 @@ describe("GitHubCacheService", () => {
     });
 
     it("should return 0 for empty issues array", () => {
-      const cacheService = new GitHubCacheService("test-data");
+      const cacheService = new GitHubCacheService("test-data", { skipDirCreation: true });
 
       const latest = cacheService.getLatestIssueNumber([]);
 
