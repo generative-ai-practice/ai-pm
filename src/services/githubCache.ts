@@ -9,12 +9,18 @@ export interface GitHubCache {
   issues: GitHubIssue[];
 }
 
+export interface GitHubCacheServiceOptions {
+  skipDirCreation?: boolean;
+}
+
 export class GitHubCacheService {
   private cacheDir: string;
 
-  constructor(cacheDir: string = "data") {
+  constructor(cacheDir: string = "data", options?: GitHubCacheServiceOptions) {
     this.cacheDir = cacheDir;
-    this.ensureCacheDir();
+    if (!options?.skipDirCreation) {
+      this.ensureCacheDir();
+    }
   }
 
   /**

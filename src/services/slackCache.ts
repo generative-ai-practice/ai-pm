@@ -9,12 +9,18 @@ export interface SlackCache {
   messages: SlackMessage[];
 }
 
+export interface SlackCacheServiceOptions {
+  skipDirCreation?: boolean;
+}
+
 export class SlackCacheService {
   private cacheDir: string;
 
-  constructor(cacheDir: string = "data") {
+  constructor(cacheDir: string = "data", options?: SlackCacheServiceOptions) {
     this.cacheDir = cacheDir;
-    this.ensureCacheDir();
+    if (!options?.skipDirCreation) {
+      this.ensureCacheDir();
+    }
   }
 
   /**
