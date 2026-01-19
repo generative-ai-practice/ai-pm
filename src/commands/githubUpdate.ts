@@ -1,39 +1,9 @@
 import dotenv from "dotenv";
-import * as fs from "fs";
-import * as path from "path";
 import { GitHubService } from "../services/github.js";
 import { GitHubCacheService } from "../services/githubCache.js";
+import { loadReposConfig } from "../services/configLoader.js";
 
 dotenv.config();
-
-interface RepoConfig {
-  owner: string;
-  repo: string;
-}
-
-interface GitHubReposConfig {
-  repositories: RepoConfig[];
-}
-
-/**
- * 設定ファイルからリポジトリ一覧を読み込む
- */
-function loadReposConfig(): RepoConfig[] | null {
-  const configPath = path.join(process.cwd(), "config", "github-repos.json");
-
-  if (!fs.existsSync(configPath)) {
-    return null;
-  }
-
-  try {
-    const data = fs.readFileSync(configPath, "utf-8");
-    const config: GitHubReposConfig = JSON.parse(data);
-    return config.repositories;
-  } catch (error) {
-    console.error(`Error loading config from ${configPath}:`, error);
-    return null;
-  }
-}
 
 /**
  * 単一リポジトリを更新
