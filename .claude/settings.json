@@ -1,0 +1,57 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(ls:*)",
+      "Bash(cat:*)",
+      "Bash(mkdir:*)"
+    ],
+    "deny": [
+      "Bash(sudo:*)",
+      "Bash(rm -rf:*)",
+      "Read(.env*)",
+      "Read(id_rsa)",
+      "Read(id_ed25519)",
+      "Read(**/*key*)",
+      "Read(**/.ssh/**)",
+      "Write(.env*)",
+      "Write(**/secrets/**)",
+      "Write(**/.ssh/**)",
+      "Bash(npm uninstall:*)",
+      "Bash(npm remove:*)",
+      "Bash(psql:*)",
+      "Bash(mysql:*)",
+      "Bash(mongod:*)",
+      "NotebookEdit"
+    ],
+    "ask": [
+      "Bash(rm:*)",
+      "Bash(curl:*)",
+      "Bash(chmod +x:*)",
+      "Bash(git commit:*)",
+      "Bash(git branch:*)",
+      "Bash(git merge:*)",
+      "Bash(git stash:*)",
+      "Bash(git fetch:*)",
+      "Bash(git push:*)",
+      "Bash(git pull:*)",
+      "Bash(git reset:*)",
+      "Bash(git rebase:*)",
+      "Bash(git tag:*)",
+      "Bash(npm publish:*)"
+    ]
+  },
+  "plansDirectory": "docs/plans",
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "yarn lint --fix && yarn format || true"
+          }
+        ]
+      }
+    ]
+  }
+}
