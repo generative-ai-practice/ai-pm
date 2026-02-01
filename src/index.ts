@@ -112,7 +112,10 @@ async function processProposals(
         // Issue本文を作成（関連Slackメッセージへの参照を含める）
         let body = proposal.description;
 
-        if (proposal.relatedSlackMessages.length > 0) {
+        if (
+          proposal.relatedSlackMessages &&
+          proposal.relatedSlackMessages.length > 0
+        ) {
           body += "\n\n## Related Slack Messages\n";
           for (const msg of proposal.relatedSlackMessages) {
             body += `- ${msg}\n`;

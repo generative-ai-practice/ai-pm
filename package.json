@@ -14,6 +14,7 @@
     "slack:export-md": "tsx src/commands/slackExportMd.ts",
     "github:init": "tsx src/commands/githubInit.ts",
     "github:update": "tsx src/commands/githubUpdate.ts",
+    "md:issues": "tsx src/commands/mdToIssues.ts",
     "test": "NODE_ENV=test npx tsx --test ./test/test_*.ts",
     "type-check": "tsc --noEmit",
     "check": "yarn run lint && yarn run type-check"
