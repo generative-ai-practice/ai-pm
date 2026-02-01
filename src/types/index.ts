@@ -16,7 +16,7 @@ export interface DateRange {
 export interface IssueProposal {
   title: string;
   description: string;
-  relatedSlackMessages: string[];
+  relatedSlackMessages?: string[];
   reasoning: string;
 }
 
